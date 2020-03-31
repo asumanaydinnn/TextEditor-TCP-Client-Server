@@ -14,6 +14,32 @@ public class TextEditor{
 		
 		
 	}
+	public static int sendUserNametoServer(String username)
+	{
+		
+		return 0;
+		
+	}
 	
+	public static int sendPasswordtoServer(String password)
+	{
+		return 0;
+	}
+	
+	public static void writeToFile(int version, int lineNo, String text)
+	{
+		FileWriter filewr = null;
+		BufferedWriter bfwr = null;
+		
+	}
+	public static String appendTheFile(int version, String text)
+	{
+		return "";
+	}
+	//update 
+	public static void exit()
+	{
+		
+	}
 
 }
