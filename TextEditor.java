@@ -6,103 +6,97 @@ import java.net.Socket;
 
 
 public class TextEditor{
-	
+
+	//it will be used in login auth functions
+	//auto-flush
+	PrintWriter writer = null;
+	BufferReader fromServer = null;
+	InputStream inputStream = null;
+	InputStreamReader inputStreamre = null;
+	Boolean userAuth = false;
+	Boolean passAuth = false; 
+	int version = 1;
+
 	public static void main(String args[]) throws IOException
 	{
 		Scanner scanner = new Scanner(System.in);
-  String ipaddress = args[0];
-  int port = Integer.parseInt(args[1]);
-  Socket socket = new Socket(ipaddress, port);
-  InputStream inputStream = socket.getInputStream();
-  InputStreamReader isr = new InputStreamReader(inputStream);
-  BufferedReader reader = new BufferedReader(isr);
-  PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-  
-       
-        System.out.print("\nEnter Username Command");
-        String username = scanner.nextLine();
-        writer.println(username);
-        username = reader.readLine();
-        System.out.println(username);
+		String ipaddress = args[0];
+		int port = Integer.parseInt(args[1]);
+		Socket socket = new Socket(ipaddress, port);
+		System.out.println("Connection is started.");
 
-        if (username.equals("EXIT\r\n"))
-        {
-            writer.println("EXIT");
-            isr.close();
-            reader.close();
-            writer.close();
-            inputStream.close();
-            socket.close();
-        }
+		//to take the input from client
+		inputStream = socket.getInputStream();
+		inputStreamre = new InputStreamReader(inputStream);
+		fromServer = new BufferedReader(isr);
+		writer = new PrintWriter(socket.getOutputStream(), true);
 
-        if (!username.equals("USER bilkentstu\r\n"))
-        {
-            writer.println("EXIT");
-            isr.close();
-            reader.close();
-            writer.close();
-            inputStream.close();
-            socket.close();
-        }
+		//USER AUTH
+		System.out.print("\nEnter Username Command");
 
-        System.out.print("\nEnter Password:");
-        String password = scanner.nextLine();
-        writer.println(password);
-        password = reader.readLine();
-        System.out.println(password);
-
-        if (password.equals("EXIT\r\n"))
-        {
-            writer.println("EXIT");
-            isr.close();
-            reader.close();
-            writer.close();
-            inputStream.close();
-            socket.close();
-        }
-
-        
-        if (!password.equals("PASS 421s2020\r\n"))
-        {
-            writer.println("EXIT");
-            isr.close();
-            reader.close();
-            writer.close();
-            inputStream.close();
-            socket.close();
-        }
-  
- }
- 
+		writer.println("USER " + usernameClient +"\r\n");
+		String[] response = {"OK","INVALID"};
+		String responseFromServer = fromServer.readLine();
+		System.out.println(responseFromServer);
+		try {
+			if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
+			{
+				userAuth = true;
+			}
+		}
+		catch(IOException exc)
+		{
+			System.out.println("About Username:" + exc.getMessage());
+			userAuth = false;
+		}
 		
-		
+		//exit function will be writen
+		if(userAuth == false)
+		{
+			socket.close();
+		}
+
+		//PASS AUTH
+		System.out.print("\nEnter password Command");
+		writer.println("PASS " + passwordClient +"\r\n");
+		String[] response = {"OK","INVALID"};
+		String responseFromServer = fromServer.readLine();
+		System.out.println(responseFromServer);
+		try {
+			if( responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
+			{
+				passAuth = true;
+			}
+		}
+		catch(IOException exc)
+		{
+			System.out.println("About Password:" + exc.getMessage());
+			passAuth = false;
+		}  
+
+		//exit function will be writen
+		if(passAuth == false)
+		{
+			socket.close();
+		}
 	}
-	public static int sendUserNametoServer(String username)
+	public static void updateTheVersion(int version)
 	{
-		
-		return 0;
+		writer.println("UPDT "+ version);
 		
 	}
-	
-	public static int sendPasswordtoServer(String password)
-	{
-		return 0;
-	}
-	
 	public static void writeToFile(int version, int lineNo, String text)
 	{
-		FileWriter filewr = null;
-		BufferedWriter bfwr = null;
-		
+
 	}
 	public static String appendTheFile(int version, String text)
 	{
 		return "";
 	}
-	//update 
+	
 	public static void exit()
 	{
-		
+
 	}
 
 }
