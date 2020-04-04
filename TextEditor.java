@@ -43,7 +43,6 @@ public class TextEditor {
 		writer = new PrintWriter(socketClient.getOutputStream(), true);
 		in  = new Scanner(System.in);
 
-
 		// USER AUTH
 		System.out.print("\nEnter Username");
 		String userName = in.nextLine();
@@ -58,23 +57,69 @@ public class TextEditor {
 		if (passAuth == false) {
 			exitClient();
 		}
-		
-		//update the file
-		if(updateTheVersion())
+
+		boolean ok = false;
+		System.out.println("Please enter a command to execute: ");
+		String command = in.nextLine();
+		while(command != "EXIT")
 		{
-			getFileFromServer();
+			if(command.contains("UPDT"))
+			{
+				ok = updateTheVersion();
+				if(ok)
+				{
+					getFileFromServer();
+				}
+				else
+				{
+					System.out.println("The other functions can be used.");
+				}
+			}
+			else if(command.contains("WRTE"))
+			{
+				String[] words = new String[4];
+				int count = 0;
+				for(int i = 0; i< command.length(); i++)
+				{
+					if(command.substring(i,i+1) == " ")
+					{
+						words[count] = command.substring(0,i);
+						command = command.substring(i+2,command.length()-i);
+						count++;
+					}
+				}
+				String version = words[1];
+				int versionX = Integer.parseInt(version);
+				String lineNo = words[2];
+				int line = Integer.parseInt(lineNo);
+
+				ok = writeToFile(versionX,line, words[3]);
+				if(ok)
+				{
+					System.out.println("Operation is successful");
+				}
+			}
+			else if(command.contains("UPDT"))
+			{
+				String[] words = new String[3];
+				int count = 0;
+				for(int i = 0; i< command.length(); i++)
+				{
+					if(command.substring(i,i+1) == " ")
+					{
+						words[count] = command.substring(0,i);
+						command = command.substring(i+2,command.length()-i);
+						count++;
+					}
+				}
+				String version = words[1];
+				int versionX = Integer.parseInt(version);
+				ok = appendTheFile(versionX, words[2]);
+			}
+			System.out.println("Please enter a command to execute: ");
+			command = in.nextLine();
 		}
-		else
-		{
-			System.out.println("The other functions can be used.");
-		}
-		
-		//exit
-		String exitCommand = in .nextLine();
-		if(exitCommand == "EXIT")
-		{
-			exitClient();
-		}
+		exitClient();
 	}
 
 	public static boolean sendUserCommand(String usernameClient) 
@@ -112,22 +157,22 @@ public class TextEditor {
 	{	
 		byte[] byteArray = new byte[6022386];
 		String ourfile = ("CS421_2020SPRING_PA1.txt");
-		 
+
 		try {
 			//get the input stream
 			inputStream = socketClient.getInputStream();
 			fileOut = new FileOutputStream(ourfile);
-			
+
 			//read the stream to array
 			inputStream.read(byteArray, 0, byteArray.length);
-			
+
 			//write array to the file
 			fileOut.write(byteArray, 0,byteArray.length);
-			
+
 			int version = getVersionOfClient();
 			version++;
 			setVersionOfClient(version);
-			
+
 		} catch (IOException exc) {
 			System.out.println("About file update:" + exc.getMessage());
 		}
@@ -150,13 +195,37 @@ public class TextEditor {
 		return false;
 	}
 
-	public static void writeToFile(int version, int lineNo, String text) 
+	public static boolean writeToFile(int version, int lineNo, String text) 
 	{
-		
+		writer.println("WRTE " + version + " " +lineNo + " "+ text + "/r/n");
+		String[] response = { "OK", "INVALID" };
+
+		try
+		{
+			String responseFromServer = fromServer.readLine();
+			System.out.println(responseFromServer);
+			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+		}
+		catch (IOException exc) {
+			System.out.println("About Append: " + exc.getMessage());
+		}
+		return false;
 	}
-	public static String appendTheFile(int version, String text) 
+	public static boolean appendTheFile(int version, String text) 
 	{
-		return "";
+		writer.println("APND " + version + " " + text + "/r/n");
+		String[] response = { "OK", "INVALID" };
+
+		try
+		{
+			String responseFromServer = fromServer.readLine();
+			System.out.println(responseFromServer);
+			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+		}
+		catch (IOException exc) {
+			System.out.println("About Append: " + exc.getMessage());
+		}
+		return false;
 	}
 	public static void exitClient()
 	{
