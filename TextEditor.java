@@ -6,143 +6,170 @@ import java.net.Socket;
 import java.io.*;
 import java.util.*;
 
+public class TextEditor {
 
-public class TextEditor{
+	private static PrintWriter writer = null;
+	private static BufferedReader fromServer = null;
+	private static InputStream inputStream = null;
+	private static InputStreamReader inputStreamRe = null;
+	private static Socket socketClient = null;
+	private static Scanner in = null;
+	private static FileOutputStream fileOut = null;
+	private static BufferedOutputStream bufferOut = null;
 
- //it will be used in login auth functions
- //auto-flush
- private static PrintWriter writer = null;
- private static BufferedReader fromServer = null;
- private static InputStream inputStream = null;
- private static InputStreamReader inputStreamre = null;
- private static Boolean userAuth = false;
- private static Boolean passAuth = false; 
- private static int version = 1;
- private static String ipaddress = "localhost";
- private static int port = 60000;
+	//Authentication
+	private static Boolean userAuth = false;
+	private static Boolean passAuth = false;
 
- public static void main(String args[]) throws IOException
- {
-  //String ipaddress = args[0];// = "localhost";
-  //int port = Integer.parseInt(args[1]);// = 60000;
-  Socket socket = new Socket(ipaddress, port);
-  System.out.println("Connection is started.");
+	//Version of the file
+	private static  int version = 1;
 
-  //to take the input from client
-  inputStream = socket.getInputStream();
-  inputStreamre = new InputStreamReader(inputStream);
-  fromServer = new BufferedReader(inputStreamre);
-  writer = new PrintWriter(socket.getOutputStream(), true);
-  
-  getFileFromServer();
+	//	private static String ipaddress = "localhost";
+	//	private static int port = 60000;
 
-  //USER AUTH
-  System.out.print("\nEnter Username");
-  //String in = scanner.readLine();
-  //exit function will be writen
-  userAuth = sendUserCommand("bilkentstu");
-  if(userAuth == false)
-  {
-   socket.close();
-  }
-  //PASS AUTH
-  System.out.print("\nEnter password");
-  passAuth = sendPassCommand("cs421s2020");
-  if(passAuth == false)
-  {
-   socket.close();
-  }
- }
- public static boolean sendUserCommand(String usernameClient)
- {
-  writer.println("USER " + usernameClient +"\r\n");
-  String[] response = {"OK","INVALID"};
-  //String responseFromServer = fromServer.readLine();
-  //System.out.println(responseFromServer);
-  try {
-    String responseFromServer = fromServer.readLine();
-  System.out.println(responseFromServer);
-   return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
-  }
-  catch(IOException exc)
-  {
-   System.out.println("About Username:" + exc.getMessage());
-  }
-  return false;
- }
- public static boolean sendPassCommand(String passwordClient)
- {
-  writer.println("PASS " + passwordClient +"\r\n");
-  String[] response = {"OK","INVALID"};
-  //String responseFromServer = fromServer.readLine();
-  //System.out.println(responseFromServer);
-  try {
-     String responseFromServer = fromServer.readLine();
-  System.out.println(responseFromServer);
-   return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
-  }
-  catch(IOException exc)
-  {
-   System.out.println("About Password:" + exc.getMessage());
-  }  
-  return false;
- }
- 
- public static void getFileFromServer()
- {
-    int bytesRead;
-    int current = 0;
-    FileOutputStream fos = null;
-    BufferedOutputStream bos = null;
-    Socket sock = null;
-    String ourfile = ("CS421_2020SPRING_PA1.txt");
-    
-    try {
-      sock = new Socket(ipaddress, port);
-      byte [] mybytearray  = new byte [6022386];
-      InputStream is = sock.getInputStream();
-      fos = new FileOutputStream(ourfile);
-      bos = new BufferedOutputStream(fos);
-      bytesRead = is.read(mybytearray,0,mybytearray.length);
-      current = bytesRead;
+	public static void main(String args[]) throws IOException {
 
-      do {
-         bytesRead =
-            is.read(mybytearray, current, (mybytearray.length-current));
-         if(bytesRead >= 0) current += bytesRead;
-      } while(bytesRead > -1);
+		String ipaddress = args[0];// = "localhost";
+		int port = Integer.parseInt(args[1]);// = 60000;
 
-      bos.write(mybytearray, 0 , current);
-      bos.flush();
-      System.out.println("File " + ourfile + " is retrieved: " + current + " bytes read received");
-    }
-    catch(IOException exc)
-    {
-      System.out.println("About Password:" + exc.getMessage());
-    }
-    
+		//Connect to the server
+		socketClient = new Socket(ipaddress, port);
+		System.out.println("Connection is started.");
 
-    
-  }
- 
- 
- public static void updateTheVersion(int version)
- {
-  writer.println("UPDT "+ version);
-  
- }
- public static void writeToFile(int version, int lineNo, String text)
- {
+		// to take the input from client
+		inputStream = socketClient.getInputStream();
+		inputStreamRe = new InputStreamReader(inputStream);
+		fromServer = new BufferedReader(inputStreamRe);
+		writer = new PrintWriter(socketClient.getOutputStream(), true);
+		in  = new Scanner(System.in);
 
- }
- public static String appendTheFile(int version, String text)
- {
-  return "";
- }
- 
- public static void exit()
- {
 
- }
+		// USER AUTH
+		System.out.print("\nEnter Username");
+		String userName = in.nextLine();
+		userAuth = sendUserCommand(userName);
+		if (userAuth == false) {
+			exitClient();
+		}
+		// PASS AUTH
+		System.out.print("\nEnter password");
+		String password = in.nextLine();
+		passAuth = sendPassCommand(password);
+		if (passAuth == false) {
+			exitClient();
+		}
+		
+		//update the file
+		
+		//exit
+		String exitCommand = in .nextLine();
+		if(exitCommand == "EXIT")
+		{
+			exitClient();
+		}
+	}
 
+	public static boolean sendUserCommand(String usernameClient) {
+		writer.println("USER " + usernameClient + "\r\n");
+		String[] response = { "OK", "INVALID" };
+		// String responseFromServer = fromServer.readLine();
+		// System.out.println(responseFromServer);
+		try {
+			String responseFromServer = fromServer.readLine();
+			System.out.println(responseFromServer);
+			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+		} catch (IOException exc) {
+			System.out.println("About Username:" + exc.getMessage());
+		}
+		return false;
+	}
+
+	public static boolean sendPassCommand(String passwordClient) {
+		writer.println("PASS " + passwordClient + "\r\n");
+		String[] response = { "OK", "INVALID" };
+		// String responseFromServer = fromServer.readLine();
+		// System.out.println(responseFromServer);
+		try {
+			String responseFromServer = fromServer.readLine();
+			System.out.println(responseFromServer);
+			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+		} catch (IOException exc) {
+			System.out.println("About Password:" + exc.getMessage());
+		}
+		return false;
+	}
+
+	public static void getFileFromServer() {
+		
+		byte[] byteArray = new byte[6022386];
+		String ourfile = ("CS421_2020SPRING_PA1.txt");
+		 
+		try {
+			//get the input stream
+			inputStream = socketClient.getInputStream();
+			fileOut = new FileOutputStream(ourfile);
+			
+			//read the stream to array
+			inputStream.read(byteArray, 0, byteArray.length);
+			
+			//write array to the file
+			fileOut.write(byteArray, 0,byteArray.length);
+			
+		} catch (IOException exc) {
+			System.out.println("About file update:" + exc.getMessage());
+		}
+	}
+
+	public static boolean updateTheVersion()
+	{
+		writer.println("UPDT " + getVersionOfClient());
+		String[] response = { "OK", "INVALID" };
+
+		try
+		{
+			String responseFromServer = fromServer.readLine();
+			System.out.println(responseFromServer);
+			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+		}
+		catch (IOException exc) {
+			System.out.println("About version: " + exc.getMessage());
+		}
+		return false;
+	}
+
+	public static void writeToFile(int version, int lineNo, String text) {
+
+	}
+
+	public static String appendTheFile(int version, String text) {
+		return "";
+	}
+	public static void exitClient() {
+
+		try
+		{
+			writer.close();
+			fromServer.close();
+			inputStream.close();
+			inputStreamRe.close();
+			socketClient.close();
+			fileOut.close();
+			bufferOut.close();
+			in.close();
+		}
+		catch(IOException exc)
+		{
+			System.out.println("Exception while exiting: " + exc.getMessage());
+		}
+		System.out.println("Connection is closed.");
+		System.exit(0);
+	}
+	public static int getVersionOfClient()
+	{
+		return version;
+	}
+	public static void setVersionOfClient(int versionUpdate)
+	{
+		version = versionUpdate;
+	}
 }
