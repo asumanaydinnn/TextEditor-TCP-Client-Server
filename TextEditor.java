@@ -29,7 +29,7 @@ public class TextEditor {
 
 	public static void main(String args[]) throws IOException {
 
-		String ipaddress = args[0];// = "localhost";
+		String ipaddress = args[0]; // = "localhost";
 		int port = Integer.parseInt(args[1]);// = 60000;
 
 		//Connect to the server
@@ -60,6 +60,14 @@ public class TextEditor {
 		}
 		
 		//update the file
+		if(updateTheVersion())
+		{
+			getFileFromServer();
+		}
+		else
+		{
+			System.out.println("The other functions can be used.");
+		}
 		
 		//exit
 		String exitCommand = in .nextLine();
@@ -69,7 +77,8 @@ public class TextEditor {
 		}
 	}
 
-	public static boolean sendUserCommand(String usernameClient) {
+	public static boolean sendUserCommand(String usernameClient) 
+	{
 		writer.println("USER " + usernameClient + "\r\n");
 		String[] response = { "OK", "INVALID" };
 		// String responseFromServer = fromServer.readLine();
@@ -84,7 +93,8 @@ public class TextEditor {
 		return false;
 	}
 
-	public static boolean sendPassCommand(String passwordClient) {
+	public static boolean sendPassCommand(String passwordClient)
+	{
 		writer.println("PASS " + passwordClient + "\r\n");
 		String[] response = { "OK", "INVALID" };
 		// String responseFromServer = fromServer.readLine();
@@ -98,9 +108,8 @@ public class TextEditor {
 		}
 		return false;
 	}
-
-	public static void getFileFromServer() {
-		
+	public static void getFileFromServer()
+	{	
 		byte[] byteArray = new byte[6022386];
 		String ourfile = ("CS421_2020SPRING_PA1.txt");
 		 
@@ -114,6 +123,10 @@ public class TextEditor {
 			
 			//write array to the file
 			fileOut.write(byteArray, 0,byteArray.length);
+			
+			int version = getVersionOfClient();
+			version++;
+			setVersionOfClient(version);
 			
 		} catch (IOException exc) {
 			System.out.println("About file update:" + exc.getMessage());
@@ -137,15 +150,16 @@ public class TextEditor {
 		return false;
 	}
 
-	public static void writeToFile(int version, int lineNo, String text) {
-
+	public static void writeToFile(int version, int lineNo, String text) 
+	{
+		
 	}
-
-	public static String appendTheFile(int version, String text) {
+	public static String appendTheFile(int version, String text) 
+	{
 		return "";
 	}
-	public static void exitClient() {
-
+	public static void exitClient()
+	{
 		try
 		{
 			writer.close();
