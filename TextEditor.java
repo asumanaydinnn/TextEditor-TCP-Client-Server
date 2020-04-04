@@ -18,11 +18,13 @@ public class TextEditor{
  private static Boolean userAuth = false;
  private static Boolean passAuth = false; 
  private static int version = 1;
+ private static String ipaddress = "localhost";
+ private static int port = 60000;
 
  public static void main(String args[]) throws IOException
  {
-  String ipaddress = args[0];// = "localhost";
-  int port = Integer.parseInt(args[1]);// = 60000;
+  //String ipaddress = args[0];// = "localhost";
+  //int port = Integer.parseInt(args[1]);// = 60000;
   Socket socket = new Socket(ipaddress, port);
   System.out.println("Connection is started.");
 
@@ -31,6 +33,8 @@ public class TextEditor{
   inputStreamre = new InputStreamReader(inputStream);
   fromServer = new BufferedReader(inputStreamre);
   writer = new PrintWriter(socket.getOutputStream(), true);
+  
+  getFileFromServer();
 
   //USER AUTH
   System.out.print("\nEnter Username");
@@ -83,6 +87,45 @@ public class TextEditor{
   }  
   return false;
  }
+ 
+ public static void getFileFromServer()
+ {
+    int bytesRead;
+    int current = 0;
+    FileOutputStream fos = null;
+    BufferedOutputStream bos = null;
+    Socket sock = null;
+    String ourfile = ("CS421_2020SPRING_PA1.txt");
+    
+    try {
+      sock = new Socket(ipaddress, port);
+      byte [] mybytearray  = new byte [6022386];
+      InputStream is = sock.getInputStream();
+      fos = new FileOutputStream(ourfile);
+      bos = new BufferedOutputStream(fos);
+      bytesRead = is.read(mybytearray,0,mybytearray.length);
+      current = bytesRead;
+
+      do {
+         bytesRead =
+            is.read(mybytearray, current, (mybytearray.length-current));
+         if(bytesRead >= 0) current += bytesRead;
+      } while(bytesRead > -1);
+
+      bos.write(mybytearray, 0 , current);
+      bos.flush();
+      System.out.println("File " + ourfile + " is retrieved: " + current + " bytes read received");
+    }
+    catch(IOException exc)
+    {
+      System.out.println("About Password:" + exc.getMessage());
+    }
+    
+
+    
+  }
+ 
+ 
  public static void updateTheVersion(int version)
  {
   writer.println("UPDT "+ version);
