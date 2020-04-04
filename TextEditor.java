@@ -24,9 +24,6 @@ public class TextEditor {
 	//Version of the file
 	private static  int version = 1;
 
-	//	private static String ipaddress = "localhost";
-	//	private static int port = 60000;
-
 	public static void main(String args[]) throws IOException {
 
 		String ipaddress = args[0]; // = "localhost";
@@ -58,15 +55,16 @@ public class TextEditor {
 			exitClient();
 		}
 
-		boolean ok = false;
+		String[] response = { "OK", "INVALID" };
 		System.out.println("Please enter a command to execute: ");
 		String command = in.nextLine();
 		while(command != "EXIT")
 		{
 			if(command.contains("UPDT"))
 			{
-				ok = updateTheVersion();
-				if(ok)
+				String responseFromServer =  updateTheVersion();
+				System.out.println(responseFromServer);
+				if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
 				{
 					getFileFromServer();
 				}
@@ -93,13 +91,17 @@ public class TextEditor {
 				String lineNo = words[2];
 				int line = Integer.parseInt(lineNo);
 
-				ok = writeToFile(versionX,line, words[3]);
-				if(ok)
+				String responseFromServer = writeToFile(versionX,line, words[3]);
+				System.out.println(responseFromServer);
+				if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
 				{
+					int version1 = getVersionOfClient();
+					version1++;
+					setVersionOfClient(version1);
 					System.out.println("Operation is successful");
 				}
 			}
-			else if(command.contains("UPDT"))
+			else if(command.contains("APND"))
 			{
 				String[] words = new String[3];
 				int count = 0;
@@ -114,7 +116,15 @@ public class TextEditor {
 				}
 				String version = words[1];
 				int versionX = Integer.parseInt(version);
-				ok = appendTheFile(versionX, words[2]);
+				String responseFromServer = appendTheFile(versionX, words[2]);
+				System.out.println(responseFromServer);
+				if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
+				{
+					int version1 = getVersionOfClient();
+					version1++;
+					setVersionOfClient(version1);
+					System.out.println("Operation is successful");
+				}
 			}
 			System.out.println("Please enter a command to execute: ");
 			command = in.nextLine();
@@ -177,55 +187,44 @@ public class TextEditor {
 			System.out.println("About file update:" + exc.getMessage());
 		}
 	}
-
-	public static boolean updateTheVersion()
+	public static String updateTheVersion()
 	{
 		writer.println("UPDT " + getVersionOfClient());
-		String[] response = { "OK", "INVALID" };
-
 		try
 		{
 			String responseFromServer = fromServer.readLine();
 			System.out.println(responseFromServer);
-			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+			return responseFromServer;
 		}
 		catch (IOException exc) {
-			System.out.println("About version: " + exc.getMessage());
+			return exc.getMessage();
 		}
-		return false;
 	}
-
-	public static boolean writeToFile(int version, int lineNo, String text) 
+	public static String writeToFile(int version, int lineNo, String text) 
 	{
 		writer.println("WRTE " + version + " " +lineNo + " "+ text + "/r/n");
-		String[] response = { "OK", "INVALID" };
-
 		try
 		{
 			String responseFromServer = fromServer.readLine();
 			System.out.println(responseFromServer);
-			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+			return responseFromServer;
 		}
 		catch (IOException exc) {
-			System.out.println("About Append: " + exc.getMessage());
+			return exc.getMessage();
 		}
-		return false;
 	}
-	public static boolean appendTheFile(int version, String text) 
+	public static String appendTheFile(int version, String text) 
 	{
 		writer.println("APND " + version + " " + text + "/r/n");
-		String[] response = { "OK", "INVALID" };
-
 		try
 		{
 			String responseFromServer = fromServer.readLine();
 			System.out.println(responseFromServer);
-			return responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]);
+			return responseFromServer;
 		}
 		catch (IOException exc) {
-			System.out.println("About Append: " + exc.getMessage());
+			return exc.getMessage();
 		}
-		return false;
 	}
 	public static void exitClient()
 	{
