@@ -41,14 +41,14 @@ public class TextEditor {
 		in  = new Scanner(System.in);
 
 		// USER AUTH
-		System.out.print("\nEnter Username");
+		System.out.print("\nEnter Username Command");
 		String userName = in.nextLine();
 		userAuth = sendUserCommand(userName);
 		if (userAuth == false) {
 			exitClient();
 		}
 		// PASS AUTH
-		System.out.print("\nEnter password");
+		System.out.print("\nEnter password command");
 		String password = in.nextLine();
 		passAuth = sendPassCommand(password);
 		if (passAuth == false) {
@@ -134,10 +134,8 @@ public class TextEditor {
 
 	public static boolean sendUserCommand(String usernameClient) 
 	{
-		writer.println("USER " + usernameClient + "\r\n");
+		writer.println(usernameClient + "\r\n");
 		String[] response = { "OK", "INVALID" };
-		// String responseFromServer = fromServer.readLine();
-		// System.out.println(responseFromServer);
 		try {
 			String responseFromServer = fromServer.readLine();
 			System.out.println(responseFromServer);
@@ -150,7 +148,7 @@ public class TextEditor {
 
 	public static boolean sendPassCommand(String passwordClient)
 	{
-		writer.println("PASS " + passwordClient + "\r\n");
+		writer.println(passwordClient + "\r\n");
 		String[] response = { "OK", "INVALID" };
 		// String responseFromServer = fromServer.readLine();
 		// System.out.println(responseFromServer);
