@@ -22,10 +22,12 @@ public class TextEditor {
 	private static Boolean passAuth = false;
 
 	//Version of the file
-	private static  int version = 1;
+	int version;
 
 	public static void main(String args[]) throws IOException {
-
+		
+		TextEditor myObje = new TextEditor();
+		myObje.version = 0;
 		String ipaddress = args[0]; // = "localhost";
 		int port = Integer.parseInt(args[1]);// = 60000;
 
@@ -41,20 +43,19 @@ public class TextEditor {
 		in  = new Scanner(System.in);
 
 		// USER AUTH
-		System.out.print("\nEnter Username Command");
+		System.out.print("Username Command:");
 		String userName = in.nextLine();
 		userAuth = sendUserCommand(userName);
 		if (userAuth == false) {
 			exitClient();
 		}
 		// PASS AUTH
-		System.out.print("\nEnter password command");
+		System.out.print("Password Command:");
 		String password = in.nextLine();
 		passAuth = sendPassCommand(password);
 		if (passAuth == false) {
 			exitClient();
 		}
-
 		String[] response = { "OK", "INVALID" };
 		System.out.println("Please enter a command to execute: ");
 		String command = in.nextLine();
@@ -62,11 +63,13 @@ public class TextEditor {
 		{
 			if(command.contains("UPDT"))
 			{
-				String responseFromServer =  updateTheVersion();
+				String responseFromServer =  updateTheVersion(myObje.getVersionOfClient());
 				System.out.println(responseFromServer);
 				if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
 				{
-					getFileFromServer();
+					int versionCurrent = myObje.getVersionOfClient();
+					versionCurrent++;
+					myObje.setVersionOfClient(versionCurrent);
 				}
 				else
 				{
@@ -75,55 +78,33 @@ public class TextEditor {
 			}
 			else if(command.contains("WRTE"))
 			{
-				String[] words = new String[4];
-				int count = 0;
-				for(int i = 0; i< command.length(); i++)
+				writer.println(command);
+				String responseFromServer = null; 
+				try
 				{
-					if(command.substring(i,i+1) == " ")
-					{
-						words[count] = command.substring(0,i);
-						command = command.substring(i+2,command.length()-i);
-						count++;
-					}
+					responseFromServer = fromServer.readLine();
+					System.out.println(responseFromServer);
 				}
-				String version = words[1];
-				int versionX = Integer.parseInt(version);
-				String lineNo = words[2];
-				int line = Integer.parseInt(lineNo);
-
-				String responseFromServer = writeToFile(versionX,line, words[3]);
-				System.out.println(responseFromServer);
+				catch (IOException exc) {
+					System.out.println("About write command: " + exc.getMessage());
+				}
 				if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
 				{
-					int version1 = getVersionOfClient();
-					version1++;
-					setVersionOfClient(version1);
-					System.out.println("Operation is successful");
+					int versionCurrent = myObje.getVersionOfClient();
+					versionCurrent++;
+					myObje.setVersionOfClient(versionCurrent);
 				}
 			}
 			else if(command.contains("APND"))
 			{
-				String[] words = new String[3];
-				int count = 0;
-				for(int i = 0; i< command.length(); i++)
-				{
-					if(command.substring(i,i+1) == " ")
-					{
-						words[count] = command.substring(0,i);
-						command = command.substring(i+2,command.length()-i);
-						count++;
-					}
-				}
-				String version = words[1];
-				int versionX = Integer.parseInt(version);
-				String responseFromServer = appendTheFile(versionX, words[2]);
+				String words[] = command.split(" ");
+				String responseFromServer = appendTheFile(myObje.getVersionOfClient(), words[2]);
 				System.out.println(responseFromServer);
 				if(responseFromServer.contains(response[0]) && !responseFromServer.contains(response[1]))
 				{
-					int version1 = getVersionOfClient();
-					version1++;
-					setVersionOfClient(version1);
-					System.out.println("Operation is successful");
+					int versionCurrent = myObje.getVersionOfClient();
+					versionCurrent++;
+					myObje.setVersionOfClient(versionCurrent);
 				}
 			}
 			System.out.println("Please enter a command to execute: ");
@@ -131,10 +112,9 @@ public class TextEditor {
 		}
 		exitClient();
 	}
-
 	public static boolean sendUserCommand(String usernameClient) 
 	{
-		writer.println(usernameClient + "\r\n");
+		writer.println(usernameClient);
 		String[] response = { "OK", "INVALID" };
 		try {
 			String responseFromServer = fromServer.readLine();
@@ -148,10 +128,8 @@ public class TextEditor {
 
 	public static boolean sendPassCommand(String passwordClient)
 	{
-		writer.println(passwordClient + "\r\n");
+		writer.println(passwordClient);
 		String[] response = { "OK", "INVALID" };
-		// String responseFromServer = fromServer.readLine();
-		// System.out.println(responseFromServer);
 		try {
 			String responseFromServer = fromServer.readLine();
 			System.out.println(responseFromServer);
@@ -161,46 +139,9 @@ public class TextEditor {
 		}
 		return false;
 	}
-	public static void getFileFromServer()
-	{	
-		byte[] byteArray = new byte[6022386];
-		String ourfile = ("CS421_2020SPRING_PA1.txt");
-
-		try {
-			//get the input stream
-			inputStream = socketClient.getInputStream();
-			fileOut = new FileOutputStream(ourfile);
-
-			//read the stream to array
-			inputStream.read(byteArray, 0, byteArray.length);
-
-			//write array to the file
-			fileOut.write(byteArray, 0,byteArray.length);
-
-			int version = getVersionOfClient();
-			version++;
-			setVersionOfClient(version);
-
-		} catch (IOException exc) {
-			System.out.println("About file update:" + exc.getMessage());
-		}
-	}
-	public static String updateTheVersion()
+	public static String updateTheVersion(int versionCurrent)
 	{
-		writer.println("UPDT " + getVersionOfClient());
-		try
-		{
-			String responseFromServer = fromServer.readLine();
-			System.out.println(responseFromServer);
-			return responseFromServer;
-		}
-		catch (IOException exc) {
-			return exc.getMessage();
-		}
-	}
-	public static String writeToFile(int version, int lineNo, String text) 
-	{
-		writer.println("WRTE " + version + " " +lineNo + " "+ text + "/r/n");
+		writer.println("UPDT " + versionCurrent);
 		try
 		{
 			String responseFromServer = fromServer.readLine();
@@ -213,7 +154,7 @@ public class TextEditor {
 	}
 	public static String appendTheFile(int version, String text) 
 	{
-		writer.println("APND " + version + " " + text + "/r/n");
+		writer.println("APND " + version + " " + text);
 		try
 		{
 			String responseFromServer = fromServer.readLine();
@@ -244,12 +185,12 @@ public class TextEditor {
 		System.out.println("Connection is closed.");
 		System.exit(0);
 	}
-	public static int getVersionOfClient()
+	public int getVersionOfClient()
 	{
-		return version;
+		return this.version;
 	}
-	public static void setVersionOfClient(int versionUpdate)
+	public void setVersionOfClient(int versionCurrent)
 	{
-		version = versionUpdate;
+		this.version = versionCurrent;
 	}
 }
